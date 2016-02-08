@@ -1,0 +1,1 @@
+dd if=SRC_DISK ibs=16M of=DSK_DISK obs=16M count=800

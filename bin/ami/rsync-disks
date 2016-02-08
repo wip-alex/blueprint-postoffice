@@ -1,0 +1,1 @@
+rsync -axvSHAX --exclude /mnt/xvdf/mnt --exclude /mnt/xvdf/var/lib/docker --exclude /mnt/xvdf/tmp --exclude /mnt/xvdf/home/.git --exclude /mnt/xvdf/swapfile --exclude '/mnt/xvdf/home/alex' --exclude '/mnt/xvdf/home/awsbackup' --exclude '/mnt/xvdf/home/docker' /mnt/xvdf/ /mnt/xvdg

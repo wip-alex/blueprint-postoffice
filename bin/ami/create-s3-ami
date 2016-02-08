@@ -1,0 +1,28 @@
+source ~/.bash_secret
+
+service postfix stop &
+service dovecot stop &
+service amavis stop &
+service spamassassin stop &
+service clamav-freshclam stop &
+service clamav-daemon stop &
+service php5-fpm stop &
+service nginx stop &
+
+/etc/init.d/spamassassin stop &
+/etc/init.d/memcached stop &
+/etc/init.d/newrelic-plugin-agent stop &
+/etc/init.d/newrelic_plugin_com.newrelic.plugins.mysql.instance stop &
+/etc/init.d/newrelic-sysmond stop &
+/etc/init.d/mysql stop &
+
+DATE=`date +"%Y%m%d"`
+AKI=`/opt/ec2-api-tools/bin/ec2-describe-images | grep $AWS_ACCOUNT_ID | awk '{ print $9 }'`
+DEST=/mnt/xvdf
+
+
+/opt/ec2-api-tools/bin/ec2-bundle-vol -k $EC2_PRIVATE_KEY -c $EC2_CERT -u $AWS_ACCOUNT_ID -r x86_64 --no-filter --no-inherit -d $DEST -e $DEST -e /swapfile -e /home/docker -e /home/alex -e /home/awsbackup -e /home/docker -e /home/etc
+
+/opt/ec2-api-tools/bin/ec2-upload-bundle -b clouderg-ami/$DATE -m $DEST/image.manifest.xml -a $AWS_ACCESS_KEY -s $AWS_SECRET_KEY -d $DEST --retry
+
+/opt/ec2-api-tools/bin/ec2-register clouderg-ami/$DATE/image.manifest.xml -n $DATE-mail.clouderg.com -O $AWS_ACCESS_KEY -W $AWS_SECRET_KEY --kernel $AKI --region us-east-1

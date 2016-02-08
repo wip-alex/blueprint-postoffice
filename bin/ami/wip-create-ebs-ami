@@ -1,0 +1,47 @@
+source ~/.bash_secret
+
+DATE=`date +"%Y%m%d"`
+
+export AKI=`/opt/ec2-api-tools/bin/ec2-describe-images | grep $AWS_ACCOUNT_ID | awk '{ print $9 }'`
+export EC2_INSTANCE_ID=`wget -q -O - http://169.254.169.254/latest/meta-data/instance-id || die \"wget instance-id has failed: $?\"`
+
+VOLUME=`/opt/ec2-api-tools/bin/ec2-create-volume --size 10 -O $AWS_ACCESS_KEY -W $AWS_SECRET_KEY --region us-east-1 --availability-zone us-east-1b | awk '{ print $2}'`
+
+/opt/ec2-api-tools/bin/ec2-attach-volume $VOLUME -O $AWS_ACCESS_KEY -W $AWS_SECRET_KEY -i $EC2_INSTANCE_ID --device /dev/sdx --region us-east-1
+
+mkdir /mnt/xvdx;sleep 5
+/sbin/mkfs.ext4 -j /dev/xvdx
+mount /dev/xvdx /mnt/xvdx
+
+mkdir /mnt/xvdx/proc
+mkdir /mnt/xvdx/etc
+mkdir /mnt/xvdx/dev
+mkdir /mnt/xvdx/var
+mkdir /mnt/xvdx/var/cache
+mkdir /mnt/xvdx/var/log
+mkdir /mnt/xvdx/var/lock
+mkdir /mnt/xvdx/var/lock/rpm
+mkdir /mnt/xvdx/tmp
+
+mount -t proc none /mnt/xvdx/proc
+
+sudo /sbin/MAKEDEV -d /mnt/xvdx/dev -x console
+sudo /sbin/MAKEDEV -d /mnt/xvdx/dev -x null
+sudo /sbin/MAKEDEV -d /mnt/xvdx/dev -x zero
+
+cp /etc/fstab /mnt/xvdx/etc/fstab
+
+e2label /dev/xvdx cloudimg-rootfs
+
+#rsync -axvSHAX --exclude /mnt --exclude /var/lib/docker --exclude /tmp --exclude /home/.git --exclude /swapfile --exclude '/home/alex' --exclude '/home/awsbackup' --exclude '/home/docker' / /mnt/xvdx/
+
+tar -cSf - -C / . --exclude=/mnt --exclude=/var/lib/docker --exclude=/tmp --exclude=/home/.git --exclude=/swapfile --exclude=/home/alex --exclude=/home/awsbackup --exclude=/home/docker | sudo tar xvf - -C /mnt/xvdx/
+
+/opt/ec2-api-tools/bin/ec2-detach-volume $VOLUME -O $AWS_ACCESS_KEY -W $AWS_SECRET_KEY
+
+SNAPSHOP=`/opt/ec2-api-tools/bin/ec2-create-snapshot $VOLUME -d $DATE-create-ebs-ami -O $AWS_ACCESS_KEY -W $AWS_SECRET_KEY | awk '{print $2}'`
+
+/opt/ec2-api-tools/bin/ec2-register -n $DATE-ebs-mail.clouderg.com -d clouderg-mail-server -a x86_64 -s $SNAPSHOP -O $AWS_ACCESS_KEY -W $AWS_SECRET_KEY --kernel $AKI -regio
+n us-east-1
+
+#/usr/sbin/ec2-delete-volume $VOLUME -O $AWS_ACCESS_KEY -W $AWS_SECRET_KEY

@@ -1,0 +1,9 @@
+source ~/.bash_secret
+
+DATE=`date +"%Y%m%d"`
+
+#/bin/rm -rf /tmp/bundle
+#mkdir -p /tmp/bundle
+#/usr/bin/ec2-bundle-vol -k $EC2_PRIVATE_KEY -c $EC2_CERT -u $AWS_ACCOUNT_ID -r x86_64 --no-filter --no-inherit -d /tmp/bundle -e /tmp/bundle -e /swapfile -e /home/docker -e /home/alex -e /home/awsbackup -e /home/docker -e /home/etc
+
+/usr/bin/ec2-upload-bundle -b clouderg-ami/$DATE -m /tmp/bundle/image.manifest.xml -a $AWS_ACCESS_KEY -s $AWS_SECRET_KEY -d /tmp/bundle --retry

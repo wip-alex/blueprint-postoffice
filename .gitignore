@@ -1,0 +1,8 @@
+.mysql_history
+.bash_history
+.bash_secret
+.gnupg
+.viminfo
+.aws
+tmp
+data

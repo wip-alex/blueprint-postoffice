@@ -1,0 +1,11 @@
+source ~/.bash_secret
+
+DATE=`date +"%Y%m%d"`
+#FILENAME="$DATE-smtp-clouderg.sql.gz"
+FILENAME="smtp-clouderg.sql.gz"
+
+mysqldump -u root -p$MYSQL_PASSWD --all-databases | gzip -c - >  ~/data/$FILENAME
+
+openssl enc -aes-256-cbc -e -in ~/data/$FILENAME -out ~/data/$FILENAME.openssl -pass pass:$MYSQL_PASSWD
+
+/usr/local/bin/aws s3 sync ~/data s3://clouderg-backup/mysql-smtp/

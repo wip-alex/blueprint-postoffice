@@ -1,0 +1,18 @@
+source ~/.bash_secret
+
+DATE=`date +"%Y%m%d"`
+
+fileName=$1
+if [ ! $fileName ]; then
+	echo "usage : $0 filename"
+  exit 1
+else
+    openssl aes-256-cbc -d -in $fileName -out $fileName.out -pass pass:$MYSQL_PASSWD
+  result=$?
+  if [ $result -eq "1" ]; then
+    echo "Error : decription"
+    exit 1
+  fi
+diff $filename $filename.out
+#  zcat $filename.out | mysql -u root -p$MYSQL_PASSWD
+fi

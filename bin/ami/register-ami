@@ -1,0 +1,6 @@
+source ~/.bash_secret
+
+DATE=`date +"%Y%m%d"`
+AKI=`/opt/ec2-api-tools/bin/ec2-describe-images | grep $AWS_ACCOUNT_ID | awk '{ print $9 }'`
+
+/opt/ec2-api-tools/bin/ec2-register clouderg-ami/$DATE/image.manifest.xml -n $DATE-mail.clouderg.com -O $AWS_ACCESS_KEY -W $AWS_SECRET_KEY --kernel $AKI --region us-east-1
